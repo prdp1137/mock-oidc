@@ -9,6 +9,9 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
 - **UserInfo Endpoint**: Provides user information based on access tokens.
 - **Client Registration Endpoint**: Allows dynamic registration of clients.
 - **JWKS Endpoint**: Provides the JSON Web Key Set for token verification.
+- **Supports Multiple Grant Types**: Supports `client_credentials`, `authorization_code`, and `refresh_token` grant types.
+- **Supports PKCE**: Supports Proof Key for Code Exchange (PKCE) for authorization code flow.
+- **Well-Known Configuration**: Provides the OpenID configuration for the server.
 
 ## Endpoints
 
@@ -34,7 +37,7 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/pr0d33p/mock-oidc.git
+   git clone https://github.com/prd1137/mock-oidc.git
    cd mock-oidc
    ```
 
@@ -58,6 +61,14 @@ Send a GET request to the authorization endpoint:
 GET /authorize?response_type=code&client_id=your-client-id&redirect_uri=your-redirect-uri&state=random-state-string
 ```
 
+### Authorization Request with PKCE
+
+Send a GET request to the authorization endpoint with PKCE parameters:
+
+```http
+GET /authorize?response_type=code&client_id=your-client-id&redirect_uri=your-redirect-uri&state=random-state-string&code_challenge=code-challenge&code_challenge_method=S256
+```
+
 ### Token Request
 
 Send a POST request to the token endpoint to exchange an authorization code for tokens:
@@ -67,6 +78,17 @@ POST /token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=authorization_code&client_id=your-client-id&client_secret=your-client-secret&code=authorization-code
+```
+
+### Token Request with PKCE
+
+Send a POST request to the token endpoint with PKCE parameters:
+
+```http
+POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&client_id=your-client-id&client_secret=your-client-secret&code=authorization-code&code_verifier=code-verifier&redirect_uri=your-redirect-uri
 ```
 
 ### UserInfo Request
