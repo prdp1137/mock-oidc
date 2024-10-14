@@ -46,7 +46,7 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
 1. Run the server:
 
    ```bash
-   python main.py
+   python3 run.py
    ```
 
 2. The server will start at `http://localhost:5000`.
