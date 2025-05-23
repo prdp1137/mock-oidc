@@ -7,7 +7,11 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
 - **Authorization Endpoint**: Handles authorization requests and issues authorization codes.
 - **Token Endpoint**: Issues access tokens and refresh tokens based on authorization codes, client credentials, and refresh tokens.
 - **UserInfo Endpoint**: Provides user information based on access tokens.
-- **Client Registration Endpoint**: Allows dynamic registration of clients.
+- **OAuth 2.0 Dynamic Client Registration**: Full support for RFC 7591 and RFC 7592
+  - Client registration endpoint
+  - Client configuration management (read, update, delete)
+  - Support for both web and native applications
+  - Public and confidential client types
 - **JWKS Endpoint**: Provides the JSON Web Key Set for token verification.
 - **Supports Multiple Grant Types**: Supports `client_credentials`, `authorization_code`, and `refresh_token` grant types.
 - **Supports PKCE**: Supports Proof Key for Code Exchange (PKCE) for authorization code flow.
@@ -18,7 +22,8 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
 - **Authorization Endpoint**: `/authorize`
 - **Token Endpoint**: `/token`
 - **UserInfo Endpoint**: `/userinfo`
-- **Client Registration Endpoint**: `/register`
+- **Client Registration Endpoint**: `/register` (POST)
+- **Client Configuration Endpoint**: `/register/{client_id}` (GET, PUT, DELETE)
 - **Well-Known Configuration**: `/.well-known/openid-configuration`
 - **JWKS Endpoint**: `/jwks`
 
@@ -39,6 +44,12 @@ This is a mock implementation of an OpenID Connect (OIDC) server using Flask. It
    ```bash
    git clone https://github.com/prd1137/mock-oidc.git
    cd mock-oidc
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
    ```
 
 ### Running the Server
@@ -138,4 +149,43 @@ POST /token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=refresh_token&client_id=your-client-id&client_secret=your-client-secret&refresh_token=refresh-token
+```
+
+## OAuth 2.0 Dynamic Client Registration
+
+This server implements RFC 7591 (OAuth 2.0 Dynamic Client Registration Protocol) and RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol).
+
+### Quick Start
+
+1. **Register a new client**:
+   ```bash
+   curl -X POST http://localhost:5000/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "redirect_uris": ["https://example.com/callback"],
+       "client_name": "My App",
+       "application_type": "web"
+     }'
+   ```
+
+2. **Use the returned `client_id` and `client_secret` for OAuth flows**
+
+3. **Manage your client** using the `registration_access_token`:
+   ```bash
+   # Read client configuration
+   curl -X GET http://localhost:5000/register/{client_id} \
+     -H "Authorization: Bearer {registration_access_token}"
+   
+   # Update client configuration
+   curl -X PUT http://localhost:5000/register/{client_id} \
+     -H "Authorization: Bearer {registration_access_token}" \
+     -H "Content-Type: application/json" \
+     -d '{"client_name": "Updated App Name"}'
+   
+   # Delete client
+   curl -X DELETE http://localhost:5000/register/{client_id} \
+     -H "Authorization: Bearer {registration_access_token}"
+   ```
+
+For detailed examples and documentation, see [DYNAMIC_CLIENT_REGISTRATION.md](DYNAMIC_CLIENT_REGISTRATION.md).
 ```
