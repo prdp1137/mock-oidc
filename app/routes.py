@@ -27,6 +27,11 @@ def well_known():
         "response_types_supported": ["code"],
         "subject_types_supported": ["public"],
         "code_challenge_methods_supported": ["S256"],
+        "grant_types_supported": [
+            "authorization_code",
+            "refresh_token",
+            "client_credentials"
+        ],
     }
     return jsonify(config)
 
