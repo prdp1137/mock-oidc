@@ -9,3 +9,5 @@ instance/*
 *.py[cod]
 *.pem
 .DS_Store
+
+.vscode/

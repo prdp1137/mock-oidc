@@ -1,24 +1,32 @@
+import os
 import secrets
 from app import db
 from app.models import Token
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
-import hashlib
-import base64
 from datetime import datetime, timedelta
 
-def generate_rsa_key_pair():
-    try:
-        with open('private_key.pem', 'rb') as f:
-            private_pem = f.read()
-            private_key = serialization.load_pem_private_key(private_pem, password=None)
-        with open('public_key.pem', 'rb') as f:
-            public_pem = f.read()
-            public_key = serialization.load_pem_public_key(public_pem)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PRIVATE_KEY_PATH = os.path.join(_PROJECT_ROOT, 'private_key.pem')
+_PUBLIC_KEY_PATH = os.path.join(_PROJECT_ROOT, 'public_key.pem')
 
-        return private_key, public_key
+_cached_keys = None
+
+
+def generate_rsa_key_pair():
+    global _cached_keys
+    if _cached_keys:
+        return _cached_keys
+
+    try:
+        with open(_PRIVATE_KEY_PATH, 'rb') as f:
+            private_key = serialization.load_pem_private_key(f.read(), password=None)
+        with open(_PUBLIC_KEY_PATH, 'rb') as f:
+            public_key = serialization.load_pem_public_key(f.read())
+        _cached_keys = (private_key, public_key)
+        return _cached_keys
     except Exception as e:
-        pass
+        print(f"Could not load existing RSA keys ({e}), generating new pair...")
 
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     public_key = private_key.public_key()
@@ -26,23 +34,23 @@ def generate_rsa_key_pair():
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
+        encryption_algorithm=serialization.NoEncryption(),
     )
-
     public_pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
 
-    with open('private_key.pem', 'wb') as f:
+    with open(_PRIVATE_KEY_PATH, 'wb') as f:
         f.write(private_pem)
-
-    with open('public_key.pem', 'wb') as f:
+    with open(_PUBLIC_KEY_PATH, 'wb') as f:
         f.write(public_pem)
 
-    return private_key, public_key
+    _cached_keys = (private_key, public_key)
+    return _cached_keys
 
-def create_access_refresh_tokens(client_id, user_id=None):
+
+def create_access_refresh_tokens(client_id, username=None, role=None):
     access_token = secrets.token_urlsafe(32)
     refresh_token = secrets.token_urlsafe(32)
 
@@ -50,16 +58,12 @@ def create_access_refresh_tokens(client_id, user_id=None):
         access_token=access_token,
         refresh_token=refresh_token,
         client_id=client_id,
-        user_id=user_id,
-        expires_at=datetime.now() + timedelta(minutes=5)
+        username=username,
+        role=role,
+        expires_at=datetime.now() + timedelta(minutes=5),
     )
 
     db.session.add(token)
     db.session.commit()
 
     return access_token, refresh_token
-
-def validate_client_secret(client_id, client_secret):
-    from app.models import Client
-    client = Client.query.filter_by(client_id=client_id).first()
-    return client and client.client_secret == client_secret

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock OIDC Login</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .login-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 360px;
+        }
+        h2 {
+            margin: 0 0 0.5rem;
+            font-size: 1.25rem;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.6rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .client-info {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 1rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Mock OIDC Login</h2>
+        <p class="subtitle">Choose an identity to continue</p>
+
+        <form method="POST" action="/authorize">
+            <input type="hidden" name="response_type" value="{{ response_type }}">
+            <input type="hidden" name="client_id" value="{{ client_id }}">
+            <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+            <input type="hidden" name="state" value="{{ state }}">
+            <input type="hidden" name="scope" value="{{ scope }}">
+            {% if code_challenge %}
+            <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
+            <input type="hidden" name="code_challenge_method" value="{{ code_challenge_method }}">
+            {% endif %}
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="e.g. jane.doe" required>
+
+            <label for="role">Role</label>
+            <select id="role" name="role">
+                <option value="admin">admin</option>
+                <option value="member" selected>member</option>
+                <option value="guest">guest</option>
+            </select>
+
+            <button type="submit">Sign In</button>
+        </form>
+
+        <div class="client-info">
+            Client: {{ client_name or client_id }}
+        </div>
+    </div>
+</body>
+</html>
